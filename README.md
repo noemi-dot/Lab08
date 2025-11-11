@@ -33,7 +33,7 @@ Il programma utilizza il database fornito, denominato `gestione_energia.sql`, ch
 
 - `consumo`: contiene i dati giornalieri di consumo dei due impianti per tutto l’anno 2026:
   - data 
-  - kwh(il consumo in kWh)
+  - kwh (il consumo in kWh)
   - id_impianto
 
 ![relazione_db.png](img/relazione_db.png)
