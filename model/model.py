@@ -26,19 +26,26 @@ class Model:
         :return: lista di tuple --> (nome dell'impianto, media), es. (Impianto A, 123)
         """
         # TODO
-        results = []   #lista che conterrà i risultati
+        results = []
 
         for imp in self._impianti:
             consumi = imp.get_consumi()
-            if consumi is None:
-                results.append((imp.nome, 0))
-                continue
-            consumi_mese = [c.kwh for c in consumi if int(c.data.split("-")[1]) == mese]  #filtra solo i consumi del mese selezionato
-            media = sum(consumi_mese) / len(consumi_mese) if consumi_mese else 0
-            results.append((imp.nome, round(media, 2)))
+            consumi_mese = []
 
+            for c in consumi:
+                # c.data è una stringa "YYYY-MM-DD"
+                mese_consumo = int(c.data[5:7])
+                if mese_consumo == mese:
+                    consumi_mese.append(c.kwh)
+
+            # Calcolo la media
+            if len(consumi_mese) > 0:
+                media = sum(consumi_mese) / len(consumi_mese)
+            else:
+                media = 0
+
+            results.append((imp.nome, media))
         return results
-
     def get_sequenza_ottima(self, mese:int):
         """
         Calcola la sequenza ottimale di interventi nei primi 7 giorni
@@ -92,16 +99,26 @@ class Model:
         :return: un dizionario: {id_impianto: [kwh_giorno1, ..., kwh_giorno7]}
         """
         # TODO
-        results = {imp.id: [0.0] * 7 for imp in self._impianti}
+        # Qui iniziava la ridefinizione, va RImOSSA.
+        # def __get_consumi_prima_settimana_mese(self, mese: int):
+        #     """
+        #     Restituisce un dizionario:
+        #     {
+        #         id_impianto: [kwh_g1, kwh_g2, ..., kwh_g7]
+        #     }
+        #     """
+        results = {}
 
         for imp in self._impianti:
             consumi = imp.get_consumi()
-            if consumi is None:
-                continue
+            lista_settimana = [0] * 7
 
             for c in consumi:
-                if int(c.data.split("-")[1]) == mese and 1 <= int(c.data.split("-")[2]) <= 7:
-                    results[imp.id][int(c.data.split("-")[2]) - 1] = c.kwh
+                mese_consumo = int(c.data[5:7])
+                giorno_consumo = int(c.data[8:10])
 
+                if mese_consumo == mese and 1 <= giorno_consumo <= 7:
+                    lista_settimana[giorno_consumo - 1] = c.kwh
+
+            results[imp.id] = lista_settimana
         return results
-
