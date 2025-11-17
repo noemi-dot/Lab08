@@ -33,19 +33,16 @@ class Model:
             consumi_mese = []
 
             for c in consumi:
-                # c.data è una stringa "YYYY-MM-DD"
-                mese_consumo = int(c.data[5:7])
-                if mese_consumo == mese:
+                if c.data.month == mese:
                     consumi_mese.append(c.kwh)
 
-            # Calcolo la media
-            if len(consumi_mese) > 0:
-                media = sum(consumi_mese) / len(consumi_mese)
-            else:
-                media = 0
+                if consumi_mese:
+                    media=sum(consumi_mese)/len(consumi_mese)
+                else:
+                    media=0
+                results.append(imp.nome, round(media,2))
 
-            results.append((imp.nome, media))
-        return results
+            return results
     def get_sequenza_ottima(self, mese:int):
         """
         Calcola la sequenza ottimale di interventi nei primi 7 giorni
@@ -73,23 +70,18 @@ class Model:
                 self.__sequenza_ottima = sequenza_parziale.copy()
             return
 
-            #  loop sugli impianti per calcolare il costo parziale
-        for imp in self._impianti:
-            imp_id = imp.id
-            costo_giorno = consumi_settimana[imp_id][giorno - 1]
-            nuovo_costo = costo_corrente + costo_giorno
+        for imp_id in consumi_settimana.keys():
+            costo=costo_corrente
 
-            # costo di spostamento se cambio impianto
-            if ultimo_impianto is not None and ultimo_impianto != imp_id:
-                nuovo_costo += 5
-            # Se il costo parziale è già peggiore del costo ottimo trovato, non procediamo con la ricorsione
-            if self.__costo_ottimo != -1 and nuovo_costo >= self.__costo_ottimo:
-                continue
+            if ultimo_impianto is not None and imp_id != ultimo_impianto:
+                costo +=5
+
+            costo+=consumi_settimana[imp_id][giorno -1]
 
             sequenza_parziale.append(imp_id)
 
             #chiamata ricorsiva per il giorno successivo
-            self.__ricorsione(sequenza_parziale, giorno + 1, imp_id, nuovo_costo, consumi_settimana)
+            self.__ricorsione(sequenza_parziale, giorno + 1, imp_id, costo, consumi_settimana)
 
             sequenza_parziale.pop()
 
@@ -111,14 +103,15 @@ class Model:
 
         for imp in self._impianti:
             consumi = imp.get_consumi()
-            lista_settimana = [0] * 7
+            lista_settimana = []
 
             for c in consumi:
                 mese_consumo = int(c.data[5:7])
                 giorno_consumo = int(c.data[8:10])
 
-                if mese_consumo == mese and 1 <= giorno_consumo <= 7:
-                    lista_settimana[giorno_consumo - 1] = c.kwh
+
+                if c.data.month==mese and 1<=c.data.day<=7:
+                    lista_settimana.append(c.kwh)
 
             results[imp.id] = lista_settimana
         return results

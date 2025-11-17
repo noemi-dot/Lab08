@@ -17,11 +17,8 @@ class Impianto:
     def get_consumi(self):
         """ Aggiorna e Restituisce la lista di consumi (self.lista_consumi) associati all'impianto"""
         # TODO
-        # La logica del metodo deve essere qui:
-        if self.lista_consumi is None:
-            # Carico dal database SOLO la prima volta (Lazy Loading)
-            self.lista_consumi = ConsumoDAO.get_consumi_by_impianto(self.id)
 
+        self.lista_consumi = ConsumoDAO.get_consumi(self.id)
         return self.lista_consumi
 
     def __eq__(self, other):
